@@ -18,20 +18,44 @@ class HomePage extends StatefulWidget {
 
 
 enum Direction { up, down, left, right }
-class _HomePageState extends State<HomePage> {
+void main() {
+  runApp(const MyApp());
+}
 
-  List<int> snakePos = [20,20,20];
-  int foodLoc = Random().nextInt(300);
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const HomePage(),
+    );
+  }
+}
+
+
+
+class _HomePageState extends State<HomePage> {
+  // Down or right - head val is grater than other
+  //up or left - head val is less than other
+  // head refers to last element of array
+  List<int> snakePosition = [24, 44, 64];
+  int foodLocation = Random().nextInt(700);
   bool start = false;
   Direction direction = Direction.down;
-  List<int> totalSpot = List.generate(700, (index) => index); //totalspot
+  List<int> totalSpot = List.generate(760, (index) => index); //totalspot
   startGame() {
     start = true;
-    snakePos = [20,20,20];
+    snakePosition = [24, 44, 64];
     Timer.periodic(const Duration(milliseconds: 300), (timer) {
       updateSnake();
       if (gameOver()) {
-        gameOverpopup();
+        gameOverAlert();
         timer.cancel();
       }
     });
@@ -41,63 +65,63 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       switch (direction) {
         case Direction.down:
-          if (snakePos.last > 700) {
-            snakePos.add(snakePos.last - 700 + 20);
+          if (snakePosition.last > 740) {
+            snakePosition.add(snakePosition.last - 760 + 20);
           } else {
-            snakePos.add(snakePos.last + 20);
+            snakePosition.add(snakePosition.last + 20);
           }
           break;
         case Direction.up:
-          if (snakePos.last < 20) {
-            snakePos.add(snakePos.last + 700 - 20);
+          if (snakePosition.last < 20) {
+            snakePosition.add(snakePosition.last + 760 - 20);
           } else {
-            snakePos.add(snakePos.last - 20);
+            snakePosition.add(snakePosition.last - 20);
           }
           break;
         case Direction.right:
-          if ((snakePos.last + 1) % 20 == 0) {
-            snakePos.add(snakePos.last + 1 - 20);
+          if ((snakePosition.last + 1) % 20 == 0) {
+            snakePosition.add(snakePosition.last + 1 - 20);
           } else {
-            snakePos.add(snakePos.last + 1);
+            snakePosition.add(snakePosition.last + 1);
           }
           break;
         case Direction.left:
-          if (snakePos.last % 20 == 0) {
-            snakePos.add(snakePos.last - 1 + 20);
+          if (snakePosition.last % 20 == 0) {
+            snakePosition.add(snakePosition.last - 1 + 20);
           } else {
-            snakePos.add(snakePos.last - 1);
+            snakePosition.add(snakePosition.last - 1);
           }
           break;
         default:
       }
-      if (snakePos.last == foodLoc) {
-        totalSpot.removeWhere((element) => snakePos.contains(element));
+      if (snakePosition.last == foodLocation) {
+        totalSpot.removeWhere((element) => snakePosition.contains(element));
 
-        foodLoc = totalSpot[Random().nextInt(totalSpot.length -
-            1)];
+        foodLocation = totalSpot[Random().nextInt(totalSpot.length -
+            1)]; //new food location is everywhere expect snackPosition
       } else {
-        snakePos.removeAt(0);
+        snakePosition.removeAt(0);
       }
     });
   }
 
   bool gameOver() {
-    final copyList = List.from(snakePos);
-    if (snakePos.length > copyList.toSet().length) {
+    final copyList = List.from(snakePosition);
+    if (snakePosition.length > copyList.toSet().length) {
       return true;
     } else {
       return false;
     }
   }
 
-  gameOverpopup() {
+  gameOverAlert() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Game Over'),
           content:
-          Text('your score is ' + (snakePos.length - 3).toString()),
+          Text('your score is ' + (snakePosition.length - 3).toString()),
           actions: [
             TextButton(
                 onPressed: () {
@@ -105,7 +129,7 @@ class _HomePageState extends State<HomePage> {
                   Navigator.of(context).pop(true);
                 },
                 child: const Text('Play Again')),
-            TextButton(//exit game
+            TextButton(
                 onPressed: () {
                   SystemNavigator.pop();
                 },
@@ -119,12 +143,6 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Snake Game',
-          style: TextStyle(
-            color: Colors.yellowAccent,
-          ),),
-      ),
       body: SafeArea(
         child: GestureDetector(
           onVerticalDragUpdate: (details) {
@@ -145,38 +163,34 @@ class _HomePageState extends State<HomePage> {
           },
           child: GridView.builder(
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: 700,
+            itemCount: 760,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 20),
             itemBuilder: (context, index) {
-              if (snakePos.contains(index)) {
+              if (snakePosition.contains(index)) {
                 return Container(
-                  color: Colors.greenAccent,
+                  color: Colors.white,
                 );
               }
-              if (index == foodLoc) {
+              if (index == foodLocation) {
                 return Container(
-
                   color: Colors.red,
                 );
               }
               return Container(
-                color: Colors.black,
+                color: Colors.green,
               );
             },
           ),
         ),
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.fromLTRB(50, 200, 150, 10),
-        child: FloatingActionButton(
-          onPressed: () {
-            startGame();
-          },
-          child: start
-              ? Text((snakePos.length - 3).toString())
-              : const Text('Start'),
-        ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          startGame();
+        },
+        child: start
+            ? Text((snakePosition.length - 3).toString())
+            : const Text('Start'),
       ),
     );
   }
